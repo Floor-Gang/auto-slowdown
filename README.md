@@ -1,19 +1,15 @@
-Notes to developers:
- * Replace everything with `< ... >` with the required data
- * Replace init-discord-bot with a feature / bot name
- * Remove all these notes
-# <Feature/Bot Name>
+# Auto Slow down
 
 ## Setup
 Download [Go](https://golang.org)
 ```shell script
 $ git clone <repository url>
 $ go mod download
-$ cd ./cmd/init-discord-bot
+$ cd ./auto-slowdown
 $ go build
-$ ./init-discord-bot
+$ ./auto-slowdown
 # ... edit config.yml ...
-$ ./init-discord-bot
+$ ./auto-slowdown
 ```
  
 ## Bot Usage
