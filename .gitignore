@@ -16,3 +16,6 @@ config.yml
 # vendor/
 
 .idea/
+channels.db
+channels.db-journal
+.vscode/launch.json
