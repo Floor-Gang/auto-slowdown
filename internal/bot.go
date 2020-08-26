@@ -9,6 +9,7 @@ import (
 type Bot struct {
 	Client *dg.Session
 	Config *Config
+	Database *Controller
 }
 
 // Start starts discord client, configuration and database
@@ -16,6 +17,8 @@ func Start() {
 	var err error
 
 	botConfig := getConfig()
+
+	database := GetController("./channels.db")
 
 	client, err := dg.New("Bot " + botConfig.Token)
 
@@ -25,7 +28,8 @@ func Start() {
 
 	bot := Bot{
 		Client: client,
-		// Config: &botConfig,
+		Config: &botConfig,
+		Database: database,
 	}
 
 	client.AddHandlerOnce(bot.onReady) // This will call onReady only once
