@@ -17,9 +17,9 @@ impl EventHandler for Handler {
     }
 
     async fn message(&self, ctx: Context, msg: Message) {
-    	if msg.is_own(&ctx.cache).await {
-    		return;	
-    	}
+        if msg.is_own(&ctx.cache).await {
+            return; 
+        }
         increment_channel(&ctx, &msg).await;
     }
 }
@@ -27,17 +27,22 @@ impl EventHandler for Handler {
 async fn increment_channel(ctx: &Context, msg: &Message) {
     let data = ctx.data.read().await;
     let db = data.get::<DataBase>().unwrap();
-    if let Err(why) = db.query("UPDATE slow_mode.channels SET message_count = message_count+1 WHERE channel_id =  $1", &[&(msg.channel_id.0 as i64)]).await {
-        println!("Error updating text channels data: {:?}", why);
-    }
 
+    match db.execute("INSERT INTO slow_mode.channels (channel_id, message_count) VALUES ($1, 1)", &[&(msg.channel_id.0 as i64)]).await {
+        Ok(_) => return,
+        Err(_) => {
+            if let Err(why) = db.query("UPDATE slow_mode.channels SET message_count = message_count+1 WHERE channel_id =  $1", &[&(msg.channel_id.0 as i64)]).await {
+                println!("Error updating text channels data: {:?}", why);
+            }
+        },
+    }
 }
 
 async fn check_messages(ctx: &Context) {
-	let data = ctx.data.read().await;
+    let data = ctx.data.read().await;
     let db = data.get::<DataBase>().unwrap();
 
-	loop {
+    loop {
         let rows = db.query("SELECT * FROM slow_mode.channels", &[]).await.unwrap();
         for row in rows {
             let x : i64 = row.get(0);
@@ -59,8 +64,8 @@ async fn check_messages(ctx: &Context) {
             }
         }
 
-		tokio::time::delay_for(core::time::Duration::from_secs(2)).await;
-	}
+        tokio::time::delay_for(core::time::Duration::from_secs(2)).await;
+    }
 }
 
 async fn update_slow_mode(ctx: &Context,channel: &u64, seconds:u64) {
@@ -72,7 +77,7 @@ async fn update_slow_mode(ctx: &Context,channel: &u64, seconds:u64) {
 
 fn between(number: &u64, min: u64, max: u64) -> bool {
     if min <= *number && *number <= max {
-		return true
-	}
-	return false
+        return true
+    }
+    return false
 }
