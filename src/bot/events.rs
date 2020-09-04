@@ -28,13 +28,27 @@ async fn increment_channel(ctx: &Context, msg: &Message) {
     let data = ctx.data.read().await;
     let db = data.get::<DataBase>().unwrap();
 
-    match db.execute("INSERT INTO slow_mode.channels (channel_id, message_count) VALUES ($1, 1)", &[&(msg.channel_id.0 as i64)]).await {
+    let res = db
+        .execute(
+            "INSERT INTO slow_mode.channels (channel_id, message_count) VALUES ($1, 1)",
+            &[&(msg.channel_id.0 as i64)],
+        )
+        .await;
+
+    match res {
         Ok(_) => return,
         Err(_) => {
-            if let Err(why) = db.query("UPDATE slow_mode.channels SET message_count = message_count+1 WHERE channel_id =  $1", &[&(msg.channel_id.0 as i64)]).await {
+            let query_res = db
+                .query("UPDATE slow_mode.channels 
+                    SET message_count = message_count+1 
+                    WHERE channel_id = $1",
+                    &[&(msg.channel_id.0 as i64)],
+                    )
+                .await;
+            if let Err(why) = query_res {
                 println!("Error updating text channels data: {:?}", why);
             }
-        },
+        }
     }
 }
 
@@ -51,10 +65,10 @@ async fn check_messages(ctx: &Context) {
             let message_count = z as u64;
 
             if between(&message_count, 51,100) {
-                update_slow_mode(&ctx, &channel_id, 60).await;
-            } else if between(&message_count, 2,50) {
                 update_slow_mode(&ctx, &channel_id, 30).await;
-            } else if between(&message_count, 0,1) {
+            } else if between(&message_count, 11,50) {
+                update_slow_mode(&ctx, &channel_id, 3).await;
+            } else if between(&message_count, 0,10) {
                 update_slow_mode(&ctx, &channel_id, 0).await;
             }
 
