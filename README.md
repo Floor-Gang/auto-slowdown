@@ -1,22 +1,23 @@
 # Auto Slow down
 
 ## Setup
-Download [Go](https://golang.org)
+Download [Rust](https://www.rust-lang.org/)
 ```shell script
 $ git clone <repository url>
-$ go mod download
-$ cd ./auto-slowdown
-$ go build
-$ ./auto-slowdown
+$ cd ./auto-slow-down
+$ cargo build --release
+$ cd ./target/release/auto-slow-down
+$ ./auto-slow-down
 # ... edit config.yml ...
-$ ./auto-slowdown
+$ ./auto-slow-down
 ```
  
 ## Bot Usage
-List your commands here and describe each one
+Commands need to be implemented based on admin needs.
+<!-- List your commands here and describe each one
 
 \<To do this>:
  * Do this step first then
  * run `.prefix command <arg 1> <arg 2>`
  
-... and so on ...
+... and so on ... -->
