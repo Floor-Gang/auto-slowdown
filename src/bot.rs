@@ -1,6 +1,6 @@
 mod commands;
 mod events;
-mod utils;
+pub mod utils;
 
 use crate::config::Config;
 use crate::database;
