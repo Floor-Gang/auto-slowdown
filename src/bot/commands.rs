@@ -7,7 +7,7 @@ use serenity::{
         macros::{command, group},
         Args, CommandResult, Delimiter,
     },
-    model::channel::Message,
+    model::prelude::*,
     prelude::*,
 };
 
@@ -18,56 +18,58 @@ use std::sync::Arc;
 pub struct Commands;
 
 #[command]
-async fn exclude(ctx: &Context, msg: &Message) -> CommandResult {
-    let mut args = Args::new(&msg.content, &[Delimiter::Single(' ')]);
-    match args.advance().single::<u64>() {
-        Ok(channel_id) => {
-            let channel_res = ctx.http.get_channel(channel_id).await;
-            match channel_res {
-                Ok(_) => {
-                    let data_read = ctx.data.read().await;
-                    let db_lock = Arc::clone(&data_read.get::<DataBase>().unwrap());
-                    drop(data_read);
-                    let db = db_lock.read().await;
+async fn exclude(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    let channel_id;
+    if let Some(_channel_id) = resolve_channel(&ctx, &mut args).await {
+        channel_id = _channel_id;
+    } else {
+        reply(ctx, msg, &String::from("Please enter a valid channel id")).await;
+        return Ok(());
+    }
 
-                    let res = db
-                        .execute(
-                            "INSERT INTO slow_mode.excluded_channels (channel_id) VALUES ($1)",
-                            &[&(channel_id as i64)],
-                        )
-                        .await;
-                    drop(db);
-                    match res {
-                        Ok(_) => {
-                            reply(
-                                ctx,
-                                msg,
-                                &String::from("Channel has been successfully excluded"),
-                            )
-                            .await;
-                            return Ok(());
-                        }
-                        Err(_) => {
-                            reply(
-                                ctx,
-                                msg,
-                                &String::from("Channel already exists in the table"),
-                            )
-                            .await;
-                        }
-                    }
-                }
-                Err(_why) => {
-                    reply(ctx, msg, &String::from("Please enter a valid channel id")).await;
-                }
-            }
-        }
-        Err(_) => {
-            reply(ctx, msg, &String::from("Please enter a valid channel id")).await;
-        }
+    let res;
+    {
+        let data_read = ctx.data.read().await;
+        let db_lock = Arc::clone(&data_read.get::<DataBase>().unwrap());
+        let db = db_lock.read().await;
+
+        res = db
+            .execute(
+                "INSERT INTO slow_mode.excluded_channels (channel_id) VALUES ($1)",
+                &[&channel_id],
+            )
+            .await;
+    }
+
+    if let Ok(_) = res {
+        reply(
+            ctx,
+            msg,
+            &String::from("Channel has been successfully excluded"),
+        )
+        .await;
+    } else {
+        reply(
+            ctx,
+            msg,
+            &String::from("Channel already exists in the table"),
+        )
+        .await;
     }
 
     Ok(())
+}
+
+async fn resolve_channel(ctx: &Context, args: &mut Args) -> Option<i64> {
+    if let Ok(channel_id) = args.advance().single::<u64>() {
+        if let Ok(_) = ctx.http.get_channel(channel_id).await {
+            return Some(channel_id as i64);
+        } else {
+            return None;
+        }
+    } else {
+        return None;
+    }
 }
 
 #[command]
