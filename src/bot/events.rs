@@ -18,7 +18,9 @@ impl EventHandler for Handler {
         if msg.is_own(&ctx.cache).await || excluded(&ctx, &msg).await || toggled(&ctx).await {
             return;
         }
-
-        increment_channel(&ctx, &msg).await;
+        
+        tokio::spawn(async move {
+            increment_channel(&ctx, &msg).await;
+        });
     }
 }
