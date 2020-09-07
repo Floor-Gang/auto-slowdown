@@ -1,18 +1,12 @@
-mod events;
 mod commands;
+mod events;
 mod utils;
 
 use crate::config::Config;
 use crate::database;
 
 use events::Handler;
-use serenity::{
-    framework::standard::{
-        StandardFramework,
-    },
-    prelude::TypeMapKey,
-    Client
-};
+use serenity::{framework::standard::StandardFramework, prelude::TypeMapKey, Client};
 
 use crate::database::DataBase;
 
