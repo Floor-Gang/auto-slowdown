@@ -12,7 +12,7 @@ use serenity::{
 
 #[group()]
 // #[commands(ping, db_test, prefix)]
-#[commands(exclude, rmexclude)]
+#[commands(exclude, rmexclude, list_excluded)]
 pub struct Commands;
 
 #[command]
@@ -121,54 +121,28 @@ async fn rmexclude(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-// #[command]
-// async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
-//     let test = "fortnite";
-//     println!("{}", test);
+#[command]
+async fn list_excluded(ctx: &Context, msg: &Message) -> CommandResult {
+    let data = ctx.data.read().await;
+    let db = data.get::<DataBase>().unwrap();
 
-//     reply(&ctx, &msg, &String::from("Pong!")).await;
-//     Ok(())
-// }
+    let rows = db.query("SELECT * FROM slow_mode.excluded_channels", &[]).await.unwrap();
 
-// #[command]
-// async fn db_test(ctx: &Context, msg: &Message) -> CommandResult {
-//     let data = ctx.data.read().await;
-//     let db = data.get::<DataBase>().unwrap();
+    let mut output : String = "".to_string();
+    for row in rows {
+        let channel_id: i64 = row.get(0);
+        output += &format!("<#{}>\n", channel_id);
+    }
+    reply(ctx, msg, &"Cock?".to_string()).await;
 
-//     let row = db.query_one("SELECT channel_id FROM slow_mode.channels", &[]).await.unwrap();
-//     let channel_id: i64 = row.get(0);
+    check_msg(msg.channel_id.send_message(&ctx.http,  |m| {
+        m.embed(|embed| {
+            embed.title("Excluded channels");
+            embed.description(output);
+            embed.color(0xffa500)
+        });
+        m
+    }).await);
 
-//     if let Err(why) = msg.channel_id.send_message(&ctx.http,  |m| {
-//         m.embed(|embed| {
-//             embed.title("Channel ID");
-//             embed.description(format!("This is a sutpid channel id: `{}`", channel_id.to_string()));
-//             embed.color(0xffa500)
-//         });
-//         m
-
-//     }).await {
-//         println!("Failed to send message in #{} because\n{:?}",
-//                  msg.channel_id, why
-//         );
-//     };
-
-//     Ok(())
-// }
-
-// #[command]
-// async fn prefix(ctx: &Context, msg: &Message) -> CommandResult {
-//     let data = ctx.data.read().await;
-//     let config = data.get::<Config>().unwrap();
-
-//     check_msg(msg.channel_id.send_message(&ctx.http,  |m| {
-//         m.embed(|embed| {
-//             embed.title("Prefix");
-//             embed.description(format!("My prefix is: `{}`", &config.prefix));
-//             embed.color(0xffa500)
-//         });
-//         m
-
-//     }).await);
-
-//     Ok(())
-// }
+    Ok(())
+}

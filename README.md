@@ -13,11 +13,11 @@ $ ./auto-slow-down
 ```
  
 ## Bot Usage
-Commands need to be implemented based on admin needs.
-<!-- List your commands here and describe each one
+### `!exclude <channel id>`
+This command will exclude a given channel from being monitored by the slow-down bot.i
 
-\<To do this>:
- * Do this step first then
- * run `.prefix command <arg 1> <arg 2>`
- 
-... and so on ... -->
+### `!rmexclude <channel_id`
+This will remove the given channel from the excluded list and will now be monitored again.
+
+### `!listexcluded`
+This will display all of the channels that are currently excluded from being monitored.
