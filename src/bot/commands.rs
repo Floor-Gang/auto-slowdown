@@ -1,4 +1,5 @@
 use crate::bot::utils::*;
+use crate::bot::Config;
 use crate::bot::DataBase;
 // use crate::config::Config;
 use serenity::{
@@ -11,7 +12,6 @@ use serenity::{
 };
 
 #[group()]
-// #[commands(ping, db_test, prefix)]
 #[commands(exclude, rmexclude, list_excluded)]
 pub struct Commands;
 
@@ -126,23 +126,48 @@ async fn list_excluded(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
     let db = data.get::<DataBase>().unwrap();
 
-    let rows = db.query("SELECT * FROM slow_mode.excluded_channels", &[]).await.unwrap();
+    let rows = db
+        .query("SELECT * FROM slow_mode.excluded_channels", &[])
+        .await
+        .unwrap();
+    let mut output: String = "".to_string();
 
-    let mut output : String = "".to_string();
     for row in rows {
         let channel_id: i64 = row.get(0);
         output += &format!("<#{}>\n", channel_id);
     }
-    reply(ctx, msg, &"Cock?".to_string()).await;
 
-    check_msg(msg.channel_id.send_message(&ctx.http,  |m| {
-        m.embed(|embed| {
-            embed.title("Excluded channels");
-            embed.description(output);
-            embed.color(0xffa500)
-        });
-        m
-    }).await);
+    check_msg(
+        msg.channel_id
+            .send_message(&ctx.http, |m| {
+                m.embed(|embed| {
+                    embed.title("Excluded channels");
+                    embed.description(output);
+                    embed.color(0xffa500)
+                });
+                m
+            })
+            .await,
+    );
 
     Ok(())
 }
+
+// WIP
+
+// #[command]
+// async fn toggle(ctx: &Context, _msg: &Message) -> CommandResult {
+//     let mut data = ctx.data.write().await;
+//     let config = data.get_mut::<Config>().unwrap();
+//     config.toggle = !config.toggle;
+//     reply(ctx, _msg, &format!("changed")).await;
+//     Ok(())
+// }
+
+// #[command]
+// async fn whatis(ctx: &Context, msg: &Message) -> CommandResult {
+//     let  data = ctx.data.read().await;
+//     let config = data.get::<Config>().unwrap();
+//     reply(ctx, msg, &format!("{}",config.toggle)).await;
+//     Ok(())
+// }

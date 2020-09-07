@@ -1,13 +1,12 @@
 use crate::bot::utils::*;
-use serenity::{model::channel::Message,
-    prelude::{TypeMapKey, Context}
+use serenity::{
+    model::channel::Message,
+    prelude::{Context, TypeMapKey},
 };
 
 use tokio_postgres::{Client as DBClient, NoTls};
 
-
 pub struct DataBase(DBClient);
-
 
 impl TypeMapKey for DataBase {
     type Value = DBClient;
@@ -30,9 +29,12 @@ pub async fn excluded(ctx: &Context, msg: &Message) -> bool {
     let db = data.get::<DataBase>().unwrap();
 
     let rows = db
-            .query("SELECT * FROM slow_mode.excluded_channels WHERE channel_id = $1", &[&(msg.channel_id.0 as i64)])
-            .await
-            .unwrap();
+        .query(
+            "SELECT * FROM slow_mode.excluded_channels WHERE channel_id = $1",
+            &[&(msg.channel_id.0 as i64)],
+        )
+        .await
+        .unwrap();
 
     if rows.len() == 1 {
         return true;

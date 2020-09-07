@@ -8,6 +8,7 @@ pub struct Config {
     pub token: String,
     pub prefix: String,
     pub db_uri: String,
+    //pub toggle: bool,
     location: String,
 }
 
@@ -20,6 +21,7 @@ impl Config {
                     token: String::new(),
                     prefix: String::from(";"),
                     db_uri: String::new(),
+                    //toggle: true,
                     location,
                 };
                 conf.save();
