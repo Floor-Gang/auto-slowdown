@@ -2,6 +2,8 @@ use serenity::{async_trait, model::prelude::*, prelude::*};
 
 use crate::database::*;
 
+use crate::bot::utils::toggled;
+
 pub struct Handler;
 
 #[async_trait]
@@ -13,7 +15,7 @@ impl EventHandler for Handler {
     }
 
     async fn message(&self, ctx: Context, msg: Message) {
-        if msg.is_own(&ctx.cache).await || excluded(&ctx, &msg).await {
+        if msg.is_own(&ctx.cache).await || excluded(&ctx, &msg).await || toggled(&ctx).await {
             return;
         }
 

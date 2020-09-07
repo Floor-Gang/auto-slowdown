@@ -101,14 +101,14 @@ pub async fn check_messages(ctx: &Context) {
             let message_count = z as u64;
 
             match message_count {
-                51..= 100 => {
+                51..=100 => {
                     update_slow_mode(&ctx, &channel_id, 30).await;
                 }
-                15..= 50 => {
+                15..=50 => {
                     update_slow_mode(&ctx, &channel_id, 3).await;
                 }
 
-                0..= 5 => {
+                0..=5 => {
                     update_slow_mode(&ctx, &channel_id, 0).await;
                 }
                 _ => {

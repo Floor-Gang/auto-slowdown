@@ -1,4 +1,7 @@
 use serenity::{model::channel::Message, prelude::Context, Result as SerenityResult};
+
+use crate::bot::Config;
+use std::sync::Arc;
 pub async fn reply(ctx: &Context, msg: &Message, content: &String) {
     if let Err(why) = msg.channel_id.say(&ctx.http, &content).await {
         println!(
@@ -15,13 +18,6 @@ pub fn check_msg(result: SerenityResult<Message>) {
     }
 }
 
-pub fn between(number: &u64, min: u64, max: u64) -> bool {
-    if min <= *number && *number <= max {
-        return true;
-    }
-    return false;
-}
-
 pub async fn update_slow_mode(ctx: &Context, channel: &u64, seconds: u64) {
     let channel = ctx.http.get_channel(*channel).await.unwrap();
     if let Err(why) = channel
@@ -31,4 +27,14 @@ pub async fn update_slow_mode(ctx: &Context, channel: &u64, seconds: u64) {
     {
         println!("Error setting channel's slow mode rate: {:?}", why);
     }
+}
+
+pub async fn toggled(ctx: &Context) -> bool {
+    let data_read = ctx.data.read().await;
+    let read_lock = Arc::clone(&data_read.get::<Config>().unwrap());
+    drop(data_read);
+    let config = read_lock.read().await;
+    let toggled = config.toggle;
+    drop(config);
+    return toggled;
 }
