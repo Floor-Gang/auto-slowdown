@@ -6,6 +6,7 @@ use serenity::{
 
 use tokio_postgres::{Client as DBClient, NoTls};
 
+use log::warn;
 pub struct DataBase(DBClient);
 
 impl TypeMapKey for DataBase {
@@ -86,21 +87,22 @@ pub async fn check_messages(ctx: &Context) {
             let x: i64 = row.get(0);
             let z: i64 = row.get(1);
             let channel_id = x as u64;
-            let message_count = z as u64;
+            let message_count = z;
 
             match message_count {
-                51..=100 => {
+                51..=500 => {
                     update_slow_mode(&ctx, &channel_id, 30).await;
                 }
                 15..=50 => {
                     update_slow_mode(&ctx, &channel_id, 3).await;
                 }
 
-                0..=5 => {
+                0..=14 => {
                     update_slow_mode(&ctx, &channel_id, 0).await;
                 }
                 _ => {
-                    return;
+                    warn!("Given count was not in the given cases: {}", message_count);
+                    continue;
                 }
             }
 
