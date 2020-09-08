@@ -38,7 +38,7 @@ pub async fn start(config: Config) {
     {
         let mut data = client.data.write().await;
         data.insert::<Config>(Arc::new(RwLock::new(config)));
-        data.insert::<DataBase>(Arc::new(RwLock::new(db_client)));
+        data.insert::<DataBase>(db_client);
     }
 
     if let Err(e) = client.start().await {

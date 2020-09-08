@@ -4,15 +4,12 @@ use serenity::{
     prelude::{Context, TypeMapKey},
 };
 
-use std::sync::Arc;
-use tokio::sync::RwLock;
-
 use tokio_postgres::{Client as DBClient, NoTls};
 
 pub struct DataBase(DBClient);
 
 impl TypeMapKey for DataBase {
-    type Value = Arc<RwLock<DBClient>>;
+    type Value = DBClient;
 }
 
 pub async fn connect(uri: &String) -> DBClient {
@@ -28,10 +25,8 @@ pub async fn connect(uri: &String) -> DBClient {
 }
 
 pub async fn excluded(ctx: &Context, msg: &Message) -> bool {
-    let data_read = ctx.data.read().await;
-    let db_lock = Arc::clone(&data_read.get::<DataBase>().unwrap());
-    drop(data_read);
-    let db = db_lock.read().await;
+    let data = ctx.data.read().await;
+    let db = data.get::<DataBase>().unwrap();
 
     let rows = db
         .query(
@@ -41,7 +36,6 @@ pub async fn excluded(ctx: &Context, msg: &Message) -> bool {
         .await
         .unwrap();
 
-    drop(db);
     if rows.len() == 1 {
         return true;
     }
@@ -50,10 +44,8 @@ pub async fn excluded(ctx: &Context, msg: &Message) -> bool {
 }
 
 pub async fn increment_channel(ctx: &Context, msg: &Message) {
-    let data_read = ctx.data.read().await;
-    let db_lock = Arc::clone(&data_read.get::<DataBase>().unwrap());
-    drop(data_read);
-    let db = db_lock.read().await;
+    let data = ctx.data.read().await;
+    let db = data.get::<DataBase>().unwrap();
 
     let res = db
         .execute(
@@ -64,7 +56,6 @@ pub async fn increment_channel(ctx: &Context, msg: &Message) {
 
     match res {
         Ok(_) => {
-            drop(db);
             return;
         }
         Err(_) => {
@@ -76,7 +67,6 @@ pub async fn increment_channel(ctx: &Context, msg: &Message) {
                     &[&(msg.channel_id.0 as i64)],
                 )
                 .await;
-            drop(db);
             if let Err(why) = query_res {
                 println!("Error updating text channels data: {:?}", why);
             }
@@ -86,10 +76,8 @@ pub async fn increment_channel(ctx: &Context, msg: &Message) {
 
 pub async fn check_messages(ctx: &Context) {
     loop {
-        let data_read = ctx.data.read().await;
-        let db_lock = Arc::clone(&data_read.get::<DataBase>().unwrap());
-        drop(data_read);
-        let db = db_lock.read().await;
+        let data = ctx.data.read().await;
+        let db = data.get::<DataBase>().unwrap();
         let rows = db
             .query("SELECT * FROM slow_mode.channels", &[])
             .await
@@ -126,7 +114,6 @@ pub async fn check_messages(ctx: &Context) {
                 println!("Error updating text channels data: {:?}", why);
             }
         }
-        drop(db);
         tokio::time::delay_for(core::time::Duration::from_secs(15)).await;
     }
 }
