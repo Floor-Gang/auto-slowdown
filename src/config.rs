@@ -1,3 +1,4 @@
+use log::info;
 use serde::{Deserialize, Serialize};
 use serde_yaml;
 use std::fs::File;
@@ -25,10 +26,8 @@ impl Config {
                     location,
                 };
                 conf.save();
-                panic!(
-                    "Saved a new config, please fill it out \n{}",
-                    &conf.location,
-                );
+                info!("Created a new config.yml to {}", &conf.location);
+                return conf;
             }
         }
     }

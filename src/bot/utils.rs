@@ -1,12 +1,13 @@
+use log::warn;
 use serenity::{model::channel::Message, prelude::Context, Result as SerenityResult};
 
 use crate::bot::Config;
 use std::sync::Arc;
 pub async fn reply(ctx: &Context, msg: &Message, content: &String) {
     if let Err(why) = msg.channel_id.say(&ctx.http, &content).await {
-        println!(
+        warn!(
             "Failed to send message in #{} because\n{:?}",
-            msg.channel_id, why
+            msg.channel_id, why,
         );
     }
 }
