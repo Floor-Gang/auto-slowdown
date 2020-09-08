@@ -14,7 +14,7 @@ use serenity::{
 use std::sync::Arc;
 
 #[group()]
-#[commands(exclude, rmexclude, list_excluded, whatis, toggle)]
+#[commands(exclude, rmexclude, list_excluded, toggle)]
 pub struct Commands;
 
 #[command]
@@ -144,25 +144,26 @@ async fn list_excluded(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 async fn toggle(ctx: &Context, _msg: &Message) -> CommandResult {
+    let toggle_value;
     {
         let data_read = ctx.data.read().await;
         let db_lock = Arc::clone(&data_read.get::<Config>().unwrap());
         let mut config = db_lock.write().await;
         config.toggle = !config.toggle;
-    }
-    reply(ctx, _msg, &format!("changed")).await;
-    Ok(())
-}
-
-#[command]
-async fn whatis(ctx: &Context, msg: &Message) -> CommandResult {
-    let toggle_value;
-    {
-        let data_read = ctx.data.read().await;
-        let db_lock = Arc::clone(&data_read.get::<Config>().unwrap());
-        let config = db_lock.read().await;
         toggle_value = config.toggle;
     }
-    reply(ctx, msg, &format!("{}", toggle_value)).await;
+    reply(
+        ctx,
+        _msg,
+        &format!(
+            "Slow-mode is now {} channels",
+            (if toggle_value {
+                "not watching"
+            } else {
+                "watching"
+            })
+        ),
+    )
+    .await;
     Ok(())
 }
