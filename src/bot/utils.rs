@@ -1,5 +1,11 @@
 use log::warn;
-use serenity::{model::channel::Message, prelude::Context, Result as SerenityResult};
+use regex::Regex;
+use serenity::{
+    framework::standard::Args,
+    model::channel::{Channel, Message},
+    prelude::Context,
+    Result as SerenityResult,
+};
 
 use crate::bot::Config;
 use std::sync::Arc;
@@ -9,6 +15,45 @@ pub async fn reply(ctx: &Context, msg: &Message, content: &String) {
             "Failed to send message in #{} because\n{:?}",
             msg.channel_id, why,
         );
+    }
+}
+
+pub async fn resolve_channel(ctx: &Context, args: &mut Args) -> Option<i64> {
+    if let Ok(channel_id) = args.single::<u64>() {
+        if let Ok(_) = ctx.http.get_channel(channel_id).await {
+            return Some(channel_id as i64);
+        } else {
+            return None;
+        }
+    } else {
+        return None;
+    }
+}
+
+pub async fn parse_channel(ctx: &Context, channel_name: String) -> Option<Channel> {
+    let channel: Channel;
+    if let Ok(id) = channel_name.parse::<u64>() {
+        let channel = match ctx.http.get_channel(id).await {
+            Ok(c) => c,
+            Err(_e) => return None,
+        };
+        Some(channel.to_owned())
+    } else if channel_name.starts_with("<#") && channel_name.ends_with(">") {
+        let re = Regex::new("[<#!>]").unwrap();
+        let channel_id = re.replace_all(&channel_name, "").into_owned();
+
+        channel = match ctx
+            .http
+            .get_channel(channel_id.parse::<u64>().unwrap())
+            .await
+        {
+            Ok(m) => m,
+            Err(_e) => return None,
+        };
+
+        Some(channel.to_owned())
+    } else {
+        None
     }
 }
 
