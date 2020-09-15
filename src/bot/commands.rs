@@ -1,7 +1,7 @@
 use crate::bot::utils::*;
 use crate::bot::Config;
 use crate::bot::DataBase;
-// use crate::config::Config;
+
 use serenity::{
     framework::standard::{
         macros::{command, group},
@@ -14,6 +14,8 @@ use serenity::{
 use std::sync::Arc;
 
 #[group()]
+#[only_in("guilds")]
+#[required_permissions(MANAGE_CHANNELS)]
 #[commands(exclude, rmexclude, list_excluded, toggle)]
 pub struct Commands;
 
@@ -57,7 +59,7 @@ async fn exclude(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult 
 }
 
 async fn resolve_channel(ctx: &Context, args: &mut Args) -> Option<i64> {
-    if let Ok(channel_id) = args.advance().single::<u64>() {
+    if let Ok(channel_id) = args.single::<u64>() {
         if let Ok(_) = ctx.http.get_channel(channel_id).await {
             return Some(channel_id as i64);
         } else {

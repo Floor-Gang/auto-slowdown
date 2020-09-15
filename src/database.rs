@@ -93,11 +93,11 @@ pub async fn check_messages(ctx: &Context) {
                 51..=500 => {
                     update_slow_mode(&ctx, &channel_id, 30).await;
                 }
-                15..=50 => {
+                4..=50 => {
                     update_slow_mode(&ctx, &channel_id, 3).await;
                 }
 
-                0..=14 => {
+                0..=3 => {
                     update_slow_mode(&ctx, &channel_id, 0).await;
                 }
                 _ => {
